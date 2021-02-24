@@ -94,6 +94,9 @@ There are never enough tests! You can create a new test anytime you want to, but
 - Your test must tackle somewhat real scenarios
 - Your test must have a good English description
 
+### Proper Benchmarks
+If you have some spare time and are generous enough, feel free to implement some proper benchmark and create a pull request. OpenJDK JHM is suggested, but if you're into some other benchmarking libraries feel free to use them instead
+
 ### BetterReflection itself
 If you spot issues in the code, think there are better ways to achieve something or think that there are methods that should be added, feel free to add them.
 
