@@ -176,8 +176,8 @@ public class BetterReflectionClass {
 		return getDeclaredField(fieldName).get(instance);
 	}
 
-	public Object invokeMethod(Object instance, String methodName) throws InvocationTargetException, IllegalAccessException {
-		return getMethod(methodName).invoke(instance);
+	public Object invokeMethod(Object instance, String methodName, Object... parameters) throws InvocationTargetException, IllegalAccessException {
+		return getMethod(methodName, BetterReflectionUtils.getClasses(parameters)).invoke(instance, parameters);
 	}
 
 	public String getSimpleName() {
