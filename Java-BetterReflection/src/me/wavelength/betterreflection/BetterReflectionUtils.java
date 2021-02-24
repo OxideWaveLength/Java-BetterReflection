@@ -26,7 +26,7 @@ public class BetterReflectionUtils {
 
 	public static Method getMethod(String name, Class<?>[] parameterTypes, Method[] methods) {
 		for (Method method : methods) {
-			if ((method.getName().equals(name)) || !(doParametersMatch(method.getParameterTypes(), parameterTypes)))
+			if ((method.getName().equals(name)) && doParametersMatch(method.getParameterTypes(), parameterTypes))
 				return method;
 
 		}
