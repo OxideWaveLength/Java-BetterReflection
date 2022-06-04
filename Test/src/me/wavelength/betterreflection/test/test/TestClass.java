@@ -16,6 +16,7 @@ public class TestClass {
 		return publicFinalField;
 	}
 
+	@SuppressWarnings("unused")
 	private String privateFieldGetter() {
 		return privateFinalField;
 	}

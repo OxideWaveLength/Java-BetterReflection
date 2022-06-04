@@ -1,7 +1,6 @@
 package me.wavelength.betterreflection.test.test;
 
 import me.wavelength.betterreflection.BetterReflectionClass;
-import me.wavelength.betterreflection.test.Timer;
 
 public abstract class Test {
 
@@ -11,7 +10,7 @@ public abstract class Test {
 
 	protected final int testAmount;
 
-	protected final Timer timer;
+	protected long startTime;
 
 	protected final TestClass testedObject;
 	protected final BetterReflectionClass betterTestedClass;
@@ -23,8 +22,6 @@ public abstract class Test {
 
 		this.testedObject = testedObject;
 		this.betterTestedClass = betterTestedClass;
-
-		this.timer = new Timer();
 	}
 
 	public Test(int id, String description, int testAmount) {

@@ -17,7 +17,7 @@ public class TraditionalTest5 extends Test {
 
 	@Override
 	public long start() {
-		timer.reset();
+		startTime = System.nanoTime();
 		Field field = null;
 		try {
 			field = testedObject.getClass().getField("publicFinalField");
@@ -27,12 +27,12 @@ public class TraditionalTest5 extends Test {
 		assert field != null;
 		for (int i = 0; i < testAmount; i++) {
 			try {
-				String value = (String) field.get(testedObject);
+				field.get(testedObject);
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				e.printStackTrace();
 			}
 		}
-		return timer.getTimePassed();
+		return System.nanoTime() - startTime;
 	}
 
 }

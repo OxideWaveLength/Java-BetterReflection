@@ -14,17 +14,17 @@ public class BetterObject4 extends Test {
 
 	@Override
 	public long start() {
-		timer.reset();
+		startTime = System.nanoTime();
 		for (int i = 0; i < testAmount; i++) {
 			Field field = betterTestedClass.getDeclaredField("privateFinalField");
 			field.setAccessible(true);
 			try {
-				String value = (String) field.get(testedObject);
+				field.get(testedObject);
 			} catch (SecurityException | IllegalArgumentException | IllegalAccessException e) {
 				e.printStackTrace();
 			}
 		}
-		return timer.getTimePassed();
+		return System.nanoTime() - startTime;
 	}
 
 }

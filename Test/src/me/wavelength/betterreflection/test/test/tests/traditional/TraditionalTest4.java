@@ -17,17 +17,17 @@ public class TraditionalTest4 extends Test {
 
 	@Override
 	public long start() {
-		timer.reset();
+		startTime = System.nanoTime();
 		for (int i = 0; i < testAmount; i++) {
 			try {
 				Field field = testedObject.getClass().getDeclaredField("privateFinalField");
 				field.setAccessible(true);
-				String value = (String) field.get(testedObject);
+				field.get(testedObject);
 			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 				e.printStackTrace();
 			}
 		}
-		return timer.getTimePassed();
+		return System.nanoTime() - startTime;
 	}
 
 }

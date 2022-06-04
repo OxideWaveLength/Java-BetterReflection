@@ -1,7 +1,5 @@
 package me.wavelength.betterreflection.test.test.tests.traditional;
 
-import java.lang.reflect.Field;
-
 import me.wavelength.betterreflection.test.test.Test;
 import me.wavelength.betterreflection.test.test.TestClass;
 
@@ -17,16 +15,15 @@ public class TraditionalTest2 extends Test {
 
 	@Override
 	public long start() {
-		timer.reset();
+		startTime = System.nanoTime();
 		for (int i = 0; i < testAmount; i++) {
 			try {
-				Field field = testedObject.getClass().getField("publicFinalField");
-				String value = (String) field.get(testedObject);
+				testedObject.getClass().getField("publicFinalField").get(testedObject);
 			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 				e.printStackTrace();
 			}
 		}
-		return timer.getTimePassed();
+		return System.nanoTime() - startTime;
 	}
 
 }

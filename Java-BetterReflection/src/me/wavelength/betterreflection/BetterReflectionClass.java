@@ -36,8 +36,49 @@ public class BetterReflectionClass {
 		this.methods = clasz.getMethods();
 	}
 
+	/**
+	 * @return a new instance of {@link #BetterReflectionClass(String)}, but if a
+	 *         ClassNotFoundException is thrown it will return null
+	 * @since 0.4
+	 */
+	public static BetterReflectionClass forName(String name) {
+		try {
+			return new BetterReflectionClass(name);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 	public Class<?> getClasz() {
 		return clasz;
+	}
+
+	/**
+	 * @since 0.4
+	 */
+	public String getName() {
+		return clasz.getName();
+	}
+
+	/**
+	 * @since 0.4
+	 */
+	public String getSimpleName() {
+		return clasz.getSimpleName();
+	}
+
+	/**
+	 * @since 0.4
+	 */
+	public String getCanonicalName() {
+		return clasz.getCanonicalName();
+	}
+
+	/**
+	 * @since 0.4
+	 */
+	public String getTypeName() {
+		return clasz.getTypeName();
 	}
 
 	public Field getDeclaredField(String name) {
@@ -62,7 +103,7 @@ public class BetterReflectionClass {
 	 * @return
 	 */
 	public Constructor<?> getDeclaredConstructor(Object... parameterTypes) {
-		return getConstructor(BetterReflectionUtils.getClasses(parameterTypes));
+		return getConstructor(BetterReflectionUtils.getTypes(parameterTypes));
 	}
 
 	public Constructor<?> getDeclaredConstructor(Class<?>... parameterTypes) {
@@ -79,7 +120,7 @@ public class BetterReflectionClass {
 	 * @return
 	 */
 	public Constructor<?> getConstructor(Object... parameterTypes) {
-		return getConstructor(BetterReflectionUtils.getClasses(parameterTypes));
+		return getConstructor(BetterReflectionUtils.getTypes(parameterTypes));
 	}
 
 	public Constructor<?> getConstructor(Class<?>... parameterTypes) {
@@ -96,7 +137,7 @@ public class BetterReflectionClass {
 	 * @return
 	 */
 	public Method getDeclaredMethod(String name, Object... parameterTypes) {
-		return getMethod(name, BetterReflectionUtils.getClasses(parameterTypes));
+		return getMethod(name, BetterReflectionUtils.getTypes(parameterTypes));
 	}
 
 	public Method getDeclaredMethod(String name, Class<?>... parameterTypes) {
@@ -112,7 +153,7 @@ public class BetterReflectionClass {
 	 *                       instances and Classes. Nothing else!
 	 */
 	public Method getMethod(String name, Object... parameterTypes) {
-		return getMethod(name, BetterReflectionUtils.getClasses(parameterTypes));
+		return getMethod(name, BetterReflectionUtils.getTypes(parameterTypes));
 	}
 
 	public Method getMethod(String name, Class<?>... parameterTypes) {
@@ -146,7 +187,7 @@ public class BetterReflectionClass {
 					parameters[i] = BetterReflection.getPrimitives().get(reflectionParameter.getValue().getClass()).getMethod(String.format("%sValue", reflectionParameter.getType().getName())).invoke(reflectionParameter.getValue());
 				}
 			}
-			Method method = getMethod(methodName, BetterReflectionUtils.getClasses(primitives, parameters));
+			Method method = getMethod(methodName, BetterReflectionUtils.getTypes(primitives, parameters));
 			method.invoke(instance, parameters);
 		}
 	}
@@ -177,15 +218,19 @@ public class BetterReflectionClass {
 	}
 
 	public Object invokeMethod(Object instance, String methodName, Object... parameters) throws InvocationTargetException, IllegalAccessException {
-		return getMethod(methodName, BetterReflectionUtils.getClasses(parameters)).invoke(instance, parameters);
-	}
-
-	public String getSimpleName() {
-		return clasz.getSimpleName();
+		return getMethod(methodName, BetterReflectionUtils.getTypes(parameters)).invoke(instance, parameters);
 	}
 
 	public Class<?> getSuperclass() {
 		return superClass;
+	}
+
+	public boolean isAssignableFrom(Class<?> clasz) {
+		return this.clasz.isAssignableFrom(clasz);
+	}
+
+	public boolean isAssignableFrom(BetterReflectionClass clasz) {
+		return isAssignableFrom(clasz.getClasz());
 	}
 
 }

@@ -1,7 +1,5 @@
 package me.wavelength.betterreflection.test.test.tests.better;
 
-import java.lang.reflect.Field;
-
 import me.wavelength.betterreflection.BetterReflectionClass;
 import me.wavelength.betterreflection.test.test.Test;
 import me.wavelength.betterreflection.test.test.TestClass;
@@ -14,11 +12,10 @@ public class BetterObject1 extends Test {
 
 	@Override
 	public long start() {
-		timer.reset();
-		for (int i = 0; i < testAmount; i++) {
-			Field field = betterTestedClass.getField("publicFinalField");
-		}
-		return timer.getTimePassed();
+		startTime = System.nanoTime();
+		for (int i = 0; i < testAmount; i++)
+			betterTestedClass.getField("publicFinalField");
+		return System.nanoTime() - startTime;
 	}
 
 }

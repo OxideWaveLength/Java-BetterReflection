@@ -67,7 +67,7 @@ public class Tester {
 		System.out.println(new StringBuilder("-------- Starting Test ").append(test.getId()).append(" --------").toString());
 		System.out.println(new StringBuilder("Description: ").append(test.getDescription()).toString());
 		long timeTaken = test.start();
-		System.out.println(new StringBuilder("The test has taken about ").append(timeTaken).append("ms.").toString());
+		System.out.println(new StringBuilder("The test has taken about ").append(timeTaken).append("ns.").toString());
 	}
 
 	public void startTests() {
