@@ -1,5 +1,5 @@
 # Java Better-Reflection
-## Faster Reflections [![Build Status](https://travis-ci.com/OxideWaveLength/Java-BetterReflection.svg?branch=main)](https://travis-ci.com/OxideWaveLength/Java-BetterReflection)
+## Faster Reflections [![Build Status](https://api.travis-ci.com/OxideWaveLength/Java-BetterReflection.svg?branch=main)](https://travis-ci.com/OxideWaveLength/Java-BetterReflection)
 
 BetterReflection is a Java library that caches reflection to achieve lower access time.
 
