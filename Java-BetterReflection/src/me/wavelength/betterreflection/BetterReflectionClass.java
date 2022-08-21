@@ -204,6 +204,15 @@ public class BetterReflectionClass {
 		return Array.newInstance(clasz, 0).getClass();
 	}
 
+	/**
+	 * @param condition the condition to be met to return an array of the class
+	 * @return an array of {@link #clasz} if condition is true, {@link #clasz}
+	 *         otherwise
+	 */
+	public Class<?> getArrayClassIf(boolean condition) {
+		return condition ? getArrayClass() : clasz;
+	}
+
 	public Object getArray(Object... content) {
 		Object array = Array.newInstance(clasz, content.length);
 		for (int i = 0; i < content.length; i++) {

@@ -27,6 +27,26 @@ public class BetterReflection {
 
 	private static final Map<Class<?>, BetterReflectionClass> PRIMITIVES = new HashMap<>();
 
+	static {
+		PRIMITIVES.put(Short.class, new BetterReflectionClass(Short.class));
+		PRIMITIVES.put(Byte.class, new BetterReflectionClass(Byte.class));
+		PRIMITIVES.put(Double.class, new BetterReflectionClass(Double.class));
+		PRIMITIVES.put(Integer.class, new BetterReflectionClass(Integer.class));
+		PRIMITIVES.put(Float.class, new BetterReflectionClass(Float.class));
+		PRIMITIVES.put(Boolean.class, new BetterReflectionClass(Boolean.class));
+		PRIMITIVES.put(Long.class, new BetterReflectionClass(Long.class));
+		PRIMITIVES.put(Void.class, new BetterReflectionClass(Void.class));
+
+		PRIMITIVES.put(short.class, new BetterReflectionClass(short.class));
+		PRIMITIVES.put(byte.class, new BetterReflectionClass(byte.class));
+		PRIMITIVES.put(double.class, new BetterReflectionClass(double.class));
+		PRIMITIVES.put(int.class, new BetterReflectionClass(int.class));
+		PRIMITIVES.put(float.class, new BetterReflectionClass(float.class));
+		PRIMITIVES.put(boolean.class, new BetterReflectionClass(boolean.class));
+		PRIMITIVES.put(long.class, new BetterReflectionClass(long.class));
+		PRIMITIVES.put(void.class, new BetterReflectionClass(void.class));
+	}
+
 	/**
 	 * @since 0.4
 	 */
@@ -34,17 +54,6 @@ public class BetterReflection {
 
 	public BetterReflection() {
 		this.betterReflectionClasses = Collections.synchronizedList(new ArrayList<>());
-
-		PRIMITIVES.put(Double.class, getBetterReflectionClass(Double.class));
-		PRIMITIVES.put(Integer.class, getBetterReflectionClass(Integer.class));
-		PRIMITIVES.put(Float.class, getBetterReflectionClass(Float.class));
-		PRIMITIVES.put(Boolean.class, getBetterReflectionClass(Boolean.class));
-		PRIMITIVES.put(Long.class, getBetterReflectionClass(Long.class));
-		PRIMITIVES.put(double.class, getBetterReflectionClass(double.class));
-		PRIMITIVES.put(int.class, getBetterReflectionClass(int.class));
-		PRIMITIVES.put(float.class, getBetterReflectionClass(float.class));
-		PRIMITIVES.put(boolean.class, getBetterReflectionClass(boolean.class));
-		PRIMITIVES.put(long.class, getBetterReflectionClass(long.class));
 	}
 
 	/**
@@ -101,7 +110,7 @@ public class BetterReflection {
 				int len = 0;
 				while ((len = in.read(buf)) != -1)
 					baos.write(buf, 0, len);
-				String body = new String(baos.toByteArray(), encoding);
+				String body = baos.toString(encoding);
 				for (String line : body.split("\",")) {
 					line = line.replace("\"", "");
 					if (!line.startsWith("tag_name"))
@@ -143,7 +152,7 @@ public class BetterReflection {
 	 * @since 0.4
 	 */
 	public static final String getVersion() {
-		return "0.4";
+		return "0.5";
 	}
 
 	/**
