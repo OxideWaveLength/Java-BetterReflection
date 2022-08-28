@@ -10,16 +10,36 @@ import java.util.Map;
 
 public class BetterReflectionClass {
 
+	/**
+	 * @since 0.6
+	 */
+	private final String name;
+	/**
+	 * @since 0.6
+	 */
+	private final String simpleName;
+	/**
+	 * @since 0.6
+	 */
+	private final String canonicalName;
+	/**
+	 * @since 0.6
+	 */
+	private final String typeName;
+
 	private Class<?> clasz;
 
-	private Field[] declaredFields;
-	private Field[] fields;
-	private Constructor<?>[] declaredConstructors;
-	private Constructor<?>[] constructors;
-	private Method[] declaredMethods;
-	private Method[] methods;
+	private final Field[] declaredFields;
+	private final Field[] fields;
+	private final Constructor<?>[] declaredConstructors;
+	private final Constructor<?>[] constructors;
+	private final Method[] declaredMethods;
+	private final Method[] methods;
 
-	private Class<?> superClass;
+	/**
+	 * @since 0.6
+	 */
+	private final Class<?> superClass;
 
 	public BetterReflectionClass(String className) throws ClassNotFoundException {
 		this(Class.forName(className));
@@ -28,12 +48,18 @@ public class BetterReflectionClass {
 	public BetterReflectionClass(Class<?> clasz) {
 		this.clasz = clasz;
 
+		this.name = clasz.getName();
+		this.simpleName = clasz.getSimpleName();
+		this.canonicalName = clasz.getCanonicalName();
+		this.typeName = clasz.getTypeName();
+
 		this.declaredFields = clasz.getDeclaredFields();
 		this.fields = clasz.getFields();
 		this.declaredConstructors = clasz.getDeclaredConstructors();
 		this.constructors = clasz.getConstructors();
 		this.declaredMethods = clasz.getDeclaredMethods();
 		this.methods = clasz.getMethods();
+		this.superClass = clasz.getSuperclass();
 	}
 
 	/**
@@ -57,28 +83,28 @@ public class BetterReflectionClass {
 	 * @since 0.4
 	 */
 	public String getName() {
-		return clasz.getName();
+		return name;
 	}
 
 	/**
 	 * @since 0.4
 	 */
 	public String getSimpleName() {
-		return clasz.getSimpleName();
+		return simpleName;
 	}
 
 	/**
 	 * @since 0.4
 	 */
 	public String getCanonicalName() {
-		return clasz.getCanonicalName();
+		return canonicalName;
 	}
 
 	/**
 	 * @since 0.4
 	 */
 	public String getTypeName() {
-		return clasz.getTypeName();
+		return typeName;
 	}
 
 	public Field getDeclaredField(String name) {
@@ -230,6 +256,9 @@ public class BetterReflectionClass {
 		return getMethod(methodName, BetterReflectionUtils.getTypes(parameters)).invoke(instance, parameters);
 	}
 
+	/**
+	 * @since 0.6
+	 */
 	public Class<?> getSuperclass() {
 		return superClass;
 	}
