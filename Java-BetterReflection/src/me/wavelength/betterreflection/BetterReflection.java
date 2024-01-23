@@ -152,7 +152,7 @@ public class BetterReflection {
 	 * @since 0.4
 	 */
 	public static final String getVersion() {
-		return "0.6";
+		return "0.7";
 	}
 
 	/**
@@ -178,5 +178,7 @@ public class BetterReflection {
 		}
 		return numbers;
 	}
+	
+	public static final BetterReflectionClass JAVA_CLASS = new BetterReflectionClass(Class.class);
 
 }

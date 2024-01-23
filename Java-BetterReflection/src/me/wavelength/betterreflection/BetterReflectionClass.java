@@ -1,12 +1,15 @@
 package me.wavelength.betterreflection;
 
+import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.JarFile;
 
 public class BetterReflectionClass {
 
@@ -26,6 +29,7 @@ public class BetterReflectionClass {
 	 * @since 0.6
 	 */
 	private final String typeName;
+	private final String packageName;
 
 	private Class<?> clasz;
 
@@ -37,12 +41,50 @@ public class BetterReflectionClass {
 	private final Method[] methods;
 
 	/**
+	 * @since 0.7
+	 */
+	private final ProtectionDomain protectionDomain;
+
+	/**
 	 * @since 0.6
 	 */
 	private final Class<?> superClass;
+	/**
+	 * @since 0.7
+	 */
+	private BetterReflectionClass betterReflectionSuperClass;
+
+	/**
+	 * Null until {@link #isRunningFromJar()} is invoked, then a mirror of
+	 * {@link BetterReflectionUtils#isRunningFromJar(BetterReflectionClass)}
+	 * 
+	 * @since 0.7
+	 */
+	private Boolean runningFromJar;
+	/**
+	 * Null until {@link #getJar()} is invoked, then a mirror of
+	 * {@link BetterReflectionUtils#getCurrentJar(BetterReflectionClass)}
+	 * 
+	 * @since 0.7
+	 */
+	private JarFile jar;
+	/**
+	 * Null until {@link #getJarFile()} is invoked, then a mirror of
+	 * {@link BetterReflectionUtils#getCurrentJarFile(BetterReflectionClass)}
+	 * 
+	 * @since 0.7
+	 */
+	private File jarFile;
 
 	public BetterReflectionClass(String className) throws ClassNotFoundException {
 		this(Class.forName(className));
+	}
+	
+	/**
+	 * @since 0.7
+	 */
+	public BetterReflectionClass(BetterReflectionClass clasz) throws ClassNotFoundException {
+		this(clasz.getClasz());
 	}
 
 	public BetterReflectionClass(Class<?> clasz) {
@@ -52,6 +94,7 @@ public class BetterReflectionClass {
 		this.simpleName = clasz.getSimpleName();
 		this.canonicalName = clasz.getCanonicalName();
 		this.typeName = clasz.getTypeName();
+		this.packageName = name.contains(".") ? name.substring(0, name.lastIndexOf(".")) : "";
 
 		this.declaredFields = clasz.getDeclaredFields();
 		this.fields = clasz.getFields();
@@ -60,6 +103,8 @@ public class BetterReflectionClass {
 		this.declaredMethods = clasz.getDeclaredMethods();
 		this.methods = clasz.getMethods();
 		this.superClass = clasz.getSuperclass();
+
+		this.protectionDomain = clasz.getProtectionDomain();
 	}
 
 	/**
@@ -73,6 +118,18 @@ public class BetterReflectionClass {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	/**
+	 * @return a BetterReflectionClass wrapping the class' Array. Null if the class
+	 *         is not found.
+	 * @since 0.7
+	 */
+	public static BetterReflectionClass forNameAsArray(String name) {
+		BetterReflectionClass clasz = forName(name);
+		if (clasz == null)
+			return null;
+		return clasz.getBetterReflectionArrayClass();
 	}
 
 	public Class<?> getClasz() {
@@ -190,6 +247,10 @@ public class BetterReflectionClass {
 		return methods;
 	}
 
+	public ProtectionDomain getProtectionDomain() {
+		return protectionDomain;
+	}
+
 	public Object newInstance() throws InstantiationException, IllegalAccessException {
 		return clasz.newInstance();
 	}
@@ -206,7 +267,6 @@ public class BetterReflectionClass {
 				Object parameter = parameters[i];
 				if (!(parameter instanceof ReflectionParameter))
 					continue;
-
 				ReflectionParameter reflectionParameter = (ReflectionParameter) parameter;
 				if (reflectionParameter.getType().isPrimitive()) {
 					primitives.put(i, reflectionParameter.getType());
@@ -228,6 +288,10 @@ public class BetterReflectionClass {
 
 	public Class<?> getArrayClass() {
 		return Array.newInstance(clasz, 0).getClass();
+	}
+
+	public BetterReflectionClass getBetterReflectionArrayClass() {
+		return new BetterReflectionClass(Array.newInstance(clasz, 0).getClass());
 	}
 
 	/**
@@ -255,6 +319,21 @@ public class BetterReflectionClass {
 	public Object invokeMethod(Object instance, String methodName, Object... parameters) throws InvocationTargetException, IllegalAccessException {
 		return getMethod(methodName, BetterReflectionUtils.getTypes(parameters)).invoke(instance, parameters);
 	}
+	
+	public Object invokeDeclaredMethod(Object instance, String methodName, Object... parameters) throws InvocationTargetException, IllegalAccessException {
+		Method method = getDeclaredMethod(methodName, BetterReflectionUtils.getTypes(parameters));
+		boolean accessible = method.isAccessible();
+		if (!accessible)
+			method.setAccessible(true);
+		Object result = method.invoke(instance, parameters);
+		if (!accessible)
+			method.setAccessible(false);
+		return result;
+	}
+	
+	public String getPackageName() {
+		return packageName;
+	}
 
 	/**
 	 * @since 0.6
@@ -263,12 +342,86 @@ public class BetterReflectionClass {
 		return superClass;
 	}
 
+	/**
+	 * @since 0.7
+	 * @return {@link #getSuperclass()} as {@link BetterReflectionClass}
+	 */
+	public BetterReflectionClass getBetterReflectionSuperClass() {
+		if (betterReflectionSuperClass == null)
+			betterReflectionSuperClass = new BetterReflectionClass(superClass);
+		return betterReflectionSuperClass;
+	}
+
+	/**
+	 * @since 0.8
+	 */
+	public boolean isRunningFromJar() {
+		if (runningFromJar == null)
+			runningFromJar = BetterReflectionUtils.isRunningFromJar(this);
+		return runningFromJar;
+	}
+
+	/**
+	 * @since 0.8
+	 */
+	public JarFile getJar() {
+		if (isRunningFromJar() && jar == null)
+			jar = BetterReflectionUtils.getCurrentJar(this);
+		return jar;
+	}
+
+	/**
+	 * @since 0.8
+	 */
+	public File getJarFile() {
+		if (isRunningFromJar() && jarFile == null)
+			jarFile = BetterReflectionUtils.getCurrentJarFile(this);
+		return jarFile;
+	}
+
 	public boolean isAssignableFrom(Class<?> clasz) {
 		return this.clasz.isAssignableFrom(clasz);
 	}
 
 	public boolean isAssignableFrom(BetterReflectionClass clasz) {
 		return isAssignableFrom(clasz.getClasz());
+	}
+
+	/**
+	 * Write the all the method headers into stout
+	 * 
+	 * @since 0.7
+	 */
+	public void dumpMethodHeaders() {
+		dumpMethodHeaders(true);
+	}
+
+	/**
+	 * Write the all the method headers into stout
+	 * 
+	 * @since 0.7
+	 */
+	public void dumpMethodHeaders(boolean includeModifiers) {
+		dumpMethodHeaders(includeModifiers, true);
+	}
+
+	/**
+	 * Write the all the method headers into stout
+	 * 
+	 * @since 0.7
+	 */
+	public void dumpMethodHeaders(boolean includeModifiers, boolean includeReturnType) {
+		dumpMethodHeaders(includeModifiers, includeReturnType, true);
+	}
+
+	/**
+	 * Write the all the method headers into stout
+	 * 
+	 * @since 0.7
+	 */
+	public void dumpMethodHeaders(boolean includeModifiers, boolean includeReturnType, boolean includeParameterNames) {
+		for (Method method : getDeclaredMethods())
+			BetterReflectionUtils.dumpMethodHeader(method, includeModifiers, includeReturnType, includeParameterNames);
 	}
 
 }

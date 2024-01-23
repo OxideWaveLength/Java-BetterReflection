@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.AccessController;
@@ -23,22 +24,15 @@ import me.wavelength.betterreflection.exceptions.CannotReadJarException;
 public class BetterReflectionUtils {
 
 	/**
-	 * Caching the jar file on launch to make sure it's not null later.
-	 * 
-	 * @since 0.4
-	 */
-	public static final File LAUNCH_JAR_FILE = getCurrentJarFile();
-
-	/**
 	 * @return whether this program is running from a Jar file or not.
 	 * 
-	 * @since 0.4
+	 * @since 0.7
 	 */
-	public static File getCurrentJarFile() {
+	public static File getCurrentJarFile(BetterReflectionClass clasz) {
 		if (!isRunningFromJar())
 			return null;
 		try {
-			return new File(BetterReflectionUtils.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+			return new File(clasz.getProtectionDomain().getCodeSource().getLocation().toURI());
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 			return null;
@@ -46,12 +40,21 @@ public class BetterReflectionUtils {
 	}
 
 	/**
-	 * @return an instance of JarFile from {@link #getCurrentJar()}
+	 * @return whether this program is running from a Jar file or not.
 	 * 
 	 * @since 0.4
 	 */
-	public static JarFile getCurrentJar() {
-		File file = getCurrentJarFile();
+	public static File getCurrentJarFile() {
+		return getCurrentJarFile(CLASS);
+	}
+
+	/**
+	 * @return an instance of JarFile from {@link #getCurrentJar()}
+	 * 
+	 * @since 0.7
+	 */
+	public static JarFile getCurrentJar(BetterReflectionClass clasz) {
+		File file = getCurrentJarFile(clasz);
 		if (file == null)
 			return null;
 		try {
@@ -63,12 +66,54 @@ public class BetterReflectionUtils {
 	}
 
 	/**
+	 * @return an instance of JarFile from {@link #getCurrentJar()}
+	 * 
+	 * @since 0.4
+	 */
+	public static JarFile getCurrentJar() {
+		return getCurrentJar(CLASS);
+	}
+
+	/**
+	 * @return whether this program is running from a Jar file or not.
+	 * 
+	 * @since 0.7
+	 */
+	public static boolean isRunningFromJar(BetterReflectionClass clasz) {
+		if (isRunningOnAndroid())
+			return false;
+		try {
+			// Caused by: java.lang.NullPointerException: Attempt to invoke virtual method
+			// 'java.lang.String java.net.URL.toString()' on a null object reference
+			return clasz.getProtectionDomain().getCodeSource().getLocation().toURI().toString().endsWith(".jar");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	/**
 	 * @return whether this program is running from a Jar file or not.
 	 * 
 	 * @since 0.4
 	 */
 	public static boolean isRunningFromJar() {
-		return BetterReflectionUtils.class.getResource("BetterReflectionUtils.class").toString().startsWith("jar:");
+		return isRunningFromJar(CLASS);
+	}
+
+	/**
+	 * @return whether this program is running on Android environment.
+	 * 
+	 *         This can easily be fooled and should not be trusted on its own.
+	 * @since 0.5
+	 */
+	public static boolean isRunningOnAndroid() {
+		try {
+			new BetterReflectionClass("android.R");
+			return true;
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
 	}
 
 	public static Field getField(String name, Field[] fields) {
@@ -80,20 +125,17 @@ public class BetterReflectionUtils {
 	}
 
 	public static Constructor<?> getConstructor(Class<?>[] parameterTypes, Constructor<?>[] constructors) {
-		for (Constructor<?> constructor : constructors) {
+		for (Constructor<?> constructor : constructors)
 			if (doParametersMatch(constructor.getParameterTypes(), parameterTypes))
 				return constructor;
-		}
 
 		return null;
 	}
 
 	public static Method getMethod(String name, Class<?>[] parameterTypes, Method[] methods) {
-		for (Method method : methods) {
+		for (Method method : methods)
 			if ((method.getName().equals(name)) && doParametersMatch(method.getParameterTypes(), parameterTypes))
 				return method;
-
-		}
 
 		return null;
 	}
@@ -101,10 +143,9 @@ public class BetterReflectionUtils {
 	public static boolean doParametersMatch(Class<?>[] parameters1, Class<?>[] parameters2) {
 		if (parameters1.length != parameters2.length)
 			return false;
-		for (int i = 0; i < parameters1.length; i++) {
+		for (int i = 0; i < parameters1.length; i++)
 			if (!(parameters1[i].equals(parameters2[i])))
 				return false;
-		}
 
 		return true;
 	}
@@ -156,7 +197,7 @@ public class BetterReflectionUtils {
 
 		return parameterTypesRefined;
 	}
-
+	
 	/*
 	 * The code below is a modified version of this answer:
 	 * https://stackoverflow.com/a/520344
@@ -334,5 +375,38 @@ public class BetterReflectionUtils {
 			throw exception;
 		}
 	}
+
+	/**
+	 * @since 0.7
+	 * @return the method's header (modifiers name(parameters), e.g. public String
+	 *         generateMethodHeader(Method method)
+	 */
+	public static String generateMethodHeader(Method method, boolean includeModifiers, boolean includeReturnType, boolean includeParameterNames) {
+		StringBuilder parameters = new StringBuilder();
+		for (Parameter parameter : method.getParameters()) {
+			if (parameters.length() != 0)
+				parameters.append(", ");
+			parameters.append(parameter.getType().getName());
+			if (includeParameterNames)
+				parameters.append(" ").append(parameter.getName());
+		}
+		return String.format("%s%s%s(%s)", includeModifiers ? Modifier.toString(method.getModifiers()) + " " : "", includeReturnType ? method.getReturnType().getName() + " " : "", method.getName(), parameters);
+	}
+
+	/**
+	 * @since 0.7 Writes {@link #generateMethodHeader(Method)} to stout
+	 */
+	public static void dumpMethodHeader(Method method, boolean includeModifiers, boolean includeReturnType, boolean includeParameterNames) {
+		System.out.println(generateMethodHeader(method, includeModifiers, includeReturnType, includeParameterNames));
+	}
+
+	public static final BetterReflectionClass CLASS = new BetterReflectionClass(BetterReflectionUtils.class);
+
+	/**
+	 * Caching the jar file on launch to make sure it's not null later.
+	 * 
+	 * @since 0.4
+	 */
+	public static final File LAUNCH_JAR_FILE = getCurrentJarFile(CLASS);
 
 }
