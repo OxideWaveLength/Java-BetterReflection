@@ -7,6 +7,17 @@ BetterReflection is a Java library that caches reflection to achieve lower acces
 
 #### This library has been created for Java 1.8, results may vary with different Java versions.
 
+## Installation
+Every update has been packed into a Jar and released on GitHub. This library is also being hosted on Maven Central, starting with version 1.0
+```xml
+<dependency>
+	<groupId>top.wavelength</groupId>
+	<artifactId>Java-BetterReflection</artifactId>
+	<version>LATEST_VERSION</version>
+</dependency>
+```
+Note: the package used to be me.wavelength.betterreflection up until version 1.0, where it's been renamed  to top.wavelength.betterreflection
+
 ## Usage
 
 There are no dependencies needed to use this library. Once you've downloaded it and set it up in your IDE you can start using it.
