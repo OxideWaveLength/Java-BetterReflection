@@ -29,10 +29,10 @@ public class Tester {
 		TestClass testedObject = new TestClass();
 
 		this.betterReflection = new BetterReflection();
-		BetterReflectionClass betterTestedObject = betterReflection.getBetterReflectionClass(TestClass.class);
+		BetterReflectionClass<TestClass> betterTestedObject = betterReflection.getBetterReflectionClass(TestClass.class);
 
 		int id = 1;
-		/** Normal Reflections - Not Cached TestedObject */
+		/* Normal Reflections - Not Cached TestedObject */
 		tests[0] = new TraditionalTest1(id++);
 		tests[1] = new TraditionalTest2(id++);
 		tests[2] = new TraditionalTest3(id++);
@@ -40,7 +40,7 @@ public class Tester {
 		tests[4] = new TraditionalTest5(id++);
 		tests[5] = new TraditionalTest6(id++);
 
-		/** Normal Reflections - Cached TestedObject */
+		/* Normal Reflections - Cached TestedObject */
 		tests[6] = new TraditionalTest1(id++, testedObject);
 		tests[7] = new TraditionalTest2(id++, testedObject);
 		tests[8] = new TraditionalTest3(id++, testedObject);
@@ -48,7 +48,7 @@ public class Tester {
 		tests[10] = new TraditionalTest5(id++, testedObject);
 		tests[11] = new TraditionalTest6(id++, testedObject);
 
-		/** Better TestedObject */
+		/* Better TestedObject */
 		id = 1;
 		betterTests[0] = new BetterObject1(id++, testedObject, betterTestedObject);
 		betterTests[1] = new BetterObject2(id++, testedObject, betterTestedObject);
@@ -59,10 +59,10 @@ public class Tester {
 	}
 
 	private void startTest(Test test) {
-		System.out.println(new StringBuilder("-------- Starting Test ").append(test.getId()).append(" --------").toString());
-		System.out.println(new StringBuilder("Description: ").append(test.getDescription()).toString());
+		System.out.println("-------- Starting Test " + test.getId() + " --------");
+		System.out.println("Description: " + test.getDescription());
 		long timeTaken = test.start();
-		System.out.println(new StringBuilder("The test has taken about ").append(timeTaken).append("ns.").toString());
+		System.out.println("The test has taken about " + timeTaken + "ns.");
 	}
 
 	public void startTests() {

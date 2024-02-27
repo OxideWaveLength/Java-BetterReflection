@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
 
 public class BetterObject2 extends Test {
 
-	public BetterObject2(int id, TestClass testedObject, BetterReflectionClass betterTestedClass) {
+	public BetterObject2(int id, TestClass testedObject, BetterReflectionClass<TestClass> betterTestedClass) {
 		super(id, "This test is going to get the public field of the test object through better reflections, get its value and store it inside of a local variable.", testedObject, betterTestedClass);
 	}
 

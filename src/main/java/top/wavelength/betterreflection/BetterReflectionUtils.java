@@ -2,6 +2,8 @@ package top.wavelength.betterreflection;
 
 import sun.misc.Unsafe;
 import top.wavelength.betterreflection.exceptions.CannotReadJarException;
+import top.wavelength.betterreflection.lookup.ClassFinder;
+import top.wavelength.betterreflection.lookup.ClassFinderFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class BetterReflectionUtils {
@@ -24,7 +25,7 @@ public class BetterReflectionUtils {
 	 * @return whether this program is running from a Jar file or not.
 	 * @since 0.7
 	 */
-	public static File getCurrentJarFile(BetterReflectionClass clasz) {
+	public static File getCurrentJarFile(BetterReflectionClass<?> clasz) {
 		if (!isRunningFromJar())
 			return null;
 		try {
@@ -48,7 +49,7 @@ public class BetterReflectionUtils {
 	 * @return an instance of JarFile from {@link #getCurrentJar()}
 	 * @since 0.7
 	 */
-	public static JarFile getCurrentJar(BetterReflectionClass clasz) {
+	public static JarFile getCurrentJar(BetterReflectionClass<?> clasz) {
 		File file = getCurrentJarFile(clasz);
 		if (file == null)
 			return null;
@@ -61,7 +62,7 @@ public class BetterReflectionUtils {
 	}
 
 	/**
-	 * @return an instance of JarFile from {@link #getCurrentJar()}
+	 * @return an instance of JarFile from {@link #getCurrentJar(BetterReflectionClass)}
 	 * @since 0.4
 	 */
 	public static JarFile getCurrentJar() {
@@ -73,7 +74,7 @@ public class BetterReflectionUtils {
 	 * @return whether this program is running from a Jar file or not.
 	 * @since 0.7
 	 */
-	public static boolean isRunningFromJar(BetterReflectionClass clasz) {
+	public static boolean isRunningFromJar(BetterReflectionClass<?> clasz) {
 		if (isRunningOnAndroid())
 			return false;
 		try {
@@ -102,7 +103,7 @@ public class BetterReflectionUtils {
 	 */
 	public static boolean isRunningOnAndroid() {
 		try {
-			new BetterReflectionClass("android.R");
+			new BetterReflectionClass<>("android.R");
 			return true;
 		} catch (ClassNotFoundException e) {
 			return false;
@@ -195,7 +196,7 @@ public class BetterReflectionUtils {
 			if (primitives != null && primitives.containsKey(i))
 				parameterTypesRefined[i] = primitives.get(i);
 			else
-				parameterTypesRefined[i] = (parameterType instanceof BetterReflectionClass ? (Class<?>) ((BetterReflectionClass) parameterType).getClasz() : (parameterType instanceof Class<?> ? (Class<?>) parameterType : parameterType.getClass()));
+				parameterTypesRefined[i] = (parameterType instanceof BetterReflectionClass ? ((BetterReflectionClass<?>) parameterType).getClasz() : (parameterType instanceof Class<?> ? (Class<?>) parameterType : parameterType.getClass()));
 		}
 
 		return parameterTypesRefined;
@@ -240,37 +241,13 @@ public class BetterReflectionUtils {
 	 * @throws CannotReadJarException If this method is invoked from a
 	 *                                Jar and the Jar file cannot be found, or it
 	 *                                cannot be read.
+	 * @see ClassFinder
+	 * @see ClassFinderFactory
+	 * @deprecated This method is deprecated in favour of ClassFinder
 	 */
-	public static List<BetterReflectionClass> getClassesInPackage(String packageName) throws IOException, URISyntaxException, CannotReadJarException {
-		if (packageName == null || packageName.trim().isEmpty())
-			return new ArrayList<>();
-		List<BetterReflectionClass> classes = new ArrayList<>();
-		if (isRunningFromJar()) {
-			packageName = packageName.replace('.', '/');
-			if (LAUNCH_JAR_FILE == null || !LAUNCH_JAR_FILE.exists() || !LAUNCH_JAR_FILE.canRead())
-				throw new CannotReadJarException(LAUNCH_JAR_FILE == null ? "[NO NAME]" : LAUNCH_JAR_FILE.getName());
-			try (JarFile jar = new JarFile(LAUNCH_JAR_FILE)) {
-				Enumeration<JarEntry> entries = jar.entries();
-				while (entries.hasMoreElements()) {
-					JarEntry entry = entries.nextElement();
-					if (entry == null)
-						continue;
-					String name = entry.getName();
-					if (name.startsWith(packageName) && name.endsWith(".class"))
-						classes.add(BetterReflectionClass.forName(entry.getName().substring(0, name.lastIndexOf('.')).replace('/', '.')));
-				}
-			}
-			return classes;
-		}
-
-		List<File> directories = getDirectoriesFromPackageName(packageName);
-		for (File directory : directories) {
-			File[] files = directory.listFiles();
-			for (File file : files)
-				if (file.getName().endsWith(".class"))
-					classes.add(BetterReflectionClass.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
-		}
-		return classes;
+	@Deprecated
+	public static List<BetterReflectionClass<Object>> getClassesInPackage(String packageName) throws IOException, URISyntaxException, CannotReadJarException {
+		return ClassFinderFactory.create(packageName, CLASS).findClasses();
 	}
 
 	/**
@@ -290,9 +267,9 @@ public class BetterReflectionUtils {
 	 *                                Jar and the Jar file cannot be found or it
 	 *                                cannot be read.
 	 */
-	public static List<BetterReflectionClass> getClassesFromNameBeginning(String packageName, String beginning) throws IOException, URISyntaxException, CannotReadJarException {
-		List<BetterReflectionClass> classes = new ArrayList<>();
-		for (BetterReflectionClass clasz : getClassesInPackage(packageName))
+	public static List<BetterReflectionClass<?>> getClassesFromNameBeginning(String packageName, String beginning) throws IOException, URISyntaxException, CannotReadJarException {
+		List<BetterReflectionClass<?>> classes = new ArrayList<>();
+		for (BetterReflectionClass<?> clasz : getClassesInPackage(packageName))
 			if (clasz.getSimpleName().startsWith(beginning))
 				classes.add(clasz);
 		return classes;
@@ -327,6 +304,7 @@ public class BetterReflectionUtils {
 	 *                 --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED
 	 *                 <p>
 	 *                 Removes (or adds) the final modifier to a field.
+	 * @throws Exception if an exception is raised trying to the final value
 	 */
 	public static void setFinal(Field field, boolean setFinal) throws Exception {
 		final int version = getJavaVersion();
@@ -370,11 +348,10 @@ public class BetterReflectionUtils {
 	}
 
 	/**
-	 * * @param method the method to dump
-	 * * @param includeModifiers      whether the method's modifiers should be dumped
-	 * * @param includeReturnType     whether the method's return type should be dumped
-	 * * @param includeParameterNames whether the method's parameter names should be dumped
-	 *
+	 * @param method                the method to dump
+	 * @param includeModifiers      whether the method's modifiers should be dumped
+	 * @param includeReturnType     whether the method's return type should be dumped
+	 * @param includeParameterNames whether the method's parameter names should be dumped
 	 * @return the method's header (modifiers name(parameters), e.g. public String
 	 * generateMethodHeader(Method method)
 	 * @since 0.7
@@ -403,11 +380,12 @@ public class BetterReflectionUtils {
 	}
 
 	/**
-	 * Uses Unsafe to allocate an instance of this class without invoking its constructor.
+	 * Allocates an instance of the specified class using Unsafe.
 	 *
-	 * @param clasz the class to allocate the instance of
-	 * @return a new instance of the current class
-	 * @since 1.0
+	 * @param clasz the class for which an instance is to be allocated
+	 * @return the allocated instance
+	 * @throws IllegalAccessException if the field cannot be accessed
+	 * @throws InstantiationException if an instance cannot be created
 	 */
 	public static Object allocateUnsafeInstance(Class<?> clasz) throws IllegalAccessException, InstantiationException {
 		Field field = BetterReflection.UNSAFE_CLASS.getDeclaredField("theUnsafe");
@@ -416,7 +394,56 @@ public class BetterReflectionUtils {
 		return unsafe.allocateInstance(clasz);
 	}
 
-	public static final BetterReflectionClass CLASS = new BetterReflectionClass(BetterReflectionUtils.class);
+	/**
+	 * Returns the fully qualified class name of the calling method's caller.
+	 *
+	 * @param depth the stacktrace depth - 3 by default.
+	 * @return the class name of the caller, or null if there is no caller.
+	 * @since 1.1
+	 */
+	public static String getCallerClassName(int depth) {
+		StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+		if (stackTrace.length > depth) { // Make sure there's a caller before this method
+			StackTraceElement callerElement = stackTrace[depth]; // Element at index 2 represents the caller
+			return callerElement.getClassName();
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the fully qualified class name of the calling method's caller.
+	 *
+	 * @return the class name of the caller, or null if there is no caller.
+	 * @since 1.1
+	 */
+	public static String getCallerClassName() {
+		return getCallerClassName(3);
+	}
+
+	/**
+	 * Returns the class of the calling method's caller.
+	 *
+	 * @param depth the stacktrace depth
+	 * @return the class of the caller, or null if there is no caller.
+	 * @since 1.1
+	 */
+	public static BetterReflectionClass<?> getCallerClass(int depth) {
+		String className = getCallerClassName(depth);
+		if (className == null) return null;
+		return BetterReflection.INSTANCE.getBetterReflectionClass(className);
+	}
+
+	/**
+	 * Returns the class of the calling method's caller.
+	 *
+	 * @return the class of the caller, or null if there is no caller.
+	 * @since 1.1
+	 */
+	public static BetterReflectionClass<?> getCallerClass() {
+		return getCallerClass(3);
+	}
+
+	public static final BetterReflectionClass<BetterReflectionUtils> CLASS = new BetterReflectionClass<>(BetterReflectionUtils.class);
 
 	/**
 	 * Caching the jar file on launch to make sure it's not null later.

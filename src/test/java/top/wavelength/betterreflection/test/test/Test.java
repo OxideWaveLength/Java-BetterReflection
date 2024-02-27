@@ -13,9 +13,9 @@ public abstract class Test {
 	protected long startTime;
 
 	protected final TestClass testedObject;
-	protected final BetterReflectionClass betterTestedClass;
+	protected final BetterReflectionClass<?> betterTestedClass;
 
-	public Test(int id, String description, int testAmount, TestClass testedObject, BetterReflectionClass betterTestedClass) {
+	public Test(int id, String description, int testAmount, TestClass testedObject, BetterReflectionClass<TestClass> betterTestedClass) {
 		this.id = id;
 		this.description = description;
 		this.testAmount = testAmount;
@@ -36,7 +36,7 @@ public abstract class Test {
 		this(id, description, 10000000, testedObject, null);
 	}
 
-	public Test(int id, String description, TestClass testedObject, BetterReflectionClass betterTestedClass) {
+	public Test(int id, String description, TestClass testedObject, BetterReflectionClass<TestClass> betterTestedClass) {
 		this(id, description, 10000000, testedObject, betterTestedClass);
 	}
 

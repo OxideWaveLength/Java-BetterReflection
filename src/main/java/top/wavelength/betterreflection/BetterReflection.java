@@ -17,30 +17,35 @@ import java.util.regex.Pattern;
  **/
 public class BetterReflection {
 
-	private final List<BetterReflectionClass> betterReflectionClasses;
+	private final List<BetterReflectionClass<?>> betterReflectionClasses;
 
-	public static final BetterReflectionClass FIELD = new BetterReflectionClass(Field.class);
+	/**
+	 * @since 1.1
+	 */
+	public static final BetterReflection INSTANCE = new BetterReflection();
 
-	private static final Map<Class<?>, BetterReflectionClass> PRIMITIVES = new HashMap<>();
+	public static final BetterReflectionClass<Field> FIELD = new BetterReflectionClass<>(Field.class);
+
+	private static final Map<Class<?>, BetterReflectionClass<?>> PRIMITIVES = new HashMap<>();
 
 	static {
-		PRIMITIVES.put(Short.class, new BetterReflectionClass(Short.class));
-		PRIMITIVES.put(Byte.class, new BetterReflectionClass(Byte.class));
-		PRIMITIVES.put(Double.class, new BetterReflectionClass(Double.class));
-		PRIMITIVES.put(Integer.class, new BetterReflectionClass(Integer.class));
-		PRIMITIVES.put(Float.class, new BetterReflectionClass(Float.class));
-		PRIMITIVES.put(Boolean.class, new BetterReflectionClass(Boolean.class));
-		PRIMITIVES.put(Long.class, new BetterReflectionClass(Long.class));
-		PRIMITIVES.put(Void.class, new BetterReflectionClass(Void.class));
+		PRIMITIVES.put(Short.class, new BetterReflectionClass<>(Short.class));
+		PRIMITIVES.put(Byte.class, new BetterReflectionClass<>(Byte.class));
+		PRIMITIVES.put(Double.class, new BetterReflectionClass<>(Double.class));
+		PRIMITIVES.put(Integer.class, new BetterReflectionClass<>(Integer.class));
+		PRIMITIVES.put(Float.class, new BetterReflectionClass<>(Float.class));
+		PRIMITIVES.put(Boolean.class, new BetterReflectionClass<>(Boolean.class));
+		PRIMITIVES.put(Long.class, new BetterReflectionClass<>(Long.class));
+		PRIMITIVES.put(Void.class, new BetterReflectionClass<>(Void.class));
 
-		PRIMITIVES.put(short.class, new BetterReflectionClass(short.class));
-		PRIMITIVES.put(byte.class, new BetterReflectionClass(byte.class));
-		PRIMITIVES.put(double.class, new BetterReflectionClass(double.class));
-		PRIMITIVES.put(int.class, new BetterReflectionClass(int.class));
-		PRIMITIVES.put(float.class, new BetterReflectionClass(float.class));
-		PRIMITIVES.put(boolean.class, new BetterReflectionClass(boolean.class));
-		PRIMITIVES.put(long.class, new BetterReflectionClass(long.class));
-		PRIMITIVES.put(void.class, new BetterReflectionClass(void.class));
+		PRIMITIVES.put(short.class, new BetterReflectionClass<>(short.class));
+		PRIMITIVES.put(byte.class, new BetterReflectionClass<>(byte.class));
+		PRIMITIVES.put(double.class, new BetterReflectionClass<>(double.class));
+		PRIMITIVES.put(int.class, new BetterReflectionClass<>(int.class));
+		PRIMITIVES.put(float.class, new BetterReflectionClass<>(float.class));
+		PRIMITIVES.put(boolean.class, new BetterReflectionClass<>(boolean.class));
+		PRIMITIVES.put(long.class, new BetterReflectionClass<>(long.class));
+		PRIMITIVES.put(void.class, new BetterReflectionClass<>(void.class));
 	}
 
 	/**
@@ -55,37 +60,42 @@ public class BetterReflection {
 	/**
 	 * @return a copy of the cached classes
 	 */
-	public List<BetterReflectionClass> getBetterReflectionClasses() {
+	public List<BetterReflectionClass<?>> getBetterReflectionClasses() {
 		return new ArrayList<>(betterReflectionClasses);
 	}
 
-	public BetterReflectionClass getBetterReflectionClass(String name) {
-		for (BetterReflectionClass betterReflectionClass : getBetterReflectionClasses())
+	public BetterReflectionClass<?> getBetterReflectionClass(String name) {
+		for (BetterReflectionClass<?> betterReflectionClass : getBetterReflectionClasses())
 			if (betterReflectionClass.getClasz().getCanonicalName() != null && betterReflectionClass.getClasz().getCanonicalName().equals(name))
 				return betterReflectionClass;
 
-		BetterReflectionClass betterReflectionClass = BetterReflectionClass.forName(name);
+		BetterReflectionClass<?> betterReflectionClass = BetterReflectionClass.forName(name);
 		if (betterReflectionClass == null)
 			return null;
 		this.betterReflectionClasses.add(betterReflectionClass);
 		return betterReflectionClass;
 	}
 
-	public BetterReflectionClass getBetterReflectionClass(Class<?> clasz) {
-		for (BetterReflectionClass betterReflectionClass : getBetterReflectionClasses())
+	@SuppressWarnings("unchecked")
+	public <T> BetterReflectionClass<T> getBetterReflectionClass(Class<T> clasz) {
+		for (BetterReflectionClass<?> betterReflectionClass : getBetterReflectionClasses())
 			if (betterReflectionClass.getClasz().equals(clasz))
-				return betterReflectionClass;
+				return (BetterReflectionClass<T>) betterReflectionClass;
 
-		BetterReflectionClass betterReflectionClass = new BetterReflectionClass(clasz);
+		BetterReflectionClass<?> betterReflectionClass;
+		if (clasz.isEnum())
+			betterReflectionClass = new EnumBetterReflectionClass<>((Class<Enum<?>>) clasz);
+		else
+			betterReflectionClass = new BetterReflectionClass<>(clasz);
 		this.betterReflectionClasses.add(betterReflectionClass);
-		return betterReflectionClass;
+		return (BetterReflectionClass<T>) betterReflectionClass;
 	}
 
-	public static Map<Class<?>, BetterReflectionClass> getPrimitives() {
+	public static Map<Class<?>, BetterReflectionClass<?>> getPrimitives() {
 		return PRIMITIVES;
 	}
 
-	public static Object getFieldValue(BetterReflectionClass betterReflectionClass, Object instance, String fieldName) throws IllegalAccessException {
+	public static Object getFieldValue(BetterReflectionClass<?> betterReflectionClass, Object instance, String fieldName) throws IllegalAccessException {
 		return betterReflectionClass.getDeclaredField(fieldName).get(instance);
 	}
 
@@ -102,7 +112,7 @@ public class BetterReflection {
 			encoding = encoding == null ? "UTF-8" : encoding.substring(encoding.indexOf("charset=") + 8);
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			byte[] buf = new byte[8192];
-			int len = 0;
+			int len;
 			while ((len = in.read(buf)) != -1)
 				baos.write(buf, 0, len);
 			String body = baos.toString(encoding);
@@ -145,7 +155,7 @@ public class BetterReflection {
 	 * @since 0.4
 	 */
 	public static String getVersion() {
-		return "1.0";
+		return "1.1";
 	}
 
 	/**
@@ -175,8 +185,8 @@ public class BetterReflection {
 	}
 
 
-	public static final BetterReflectionClass JAVA_CLASS = new BetterReflectionClass(Class.class);
+	public static final BetterReflectionClass<?> JAVA_CLASS = new BetterReflectionClass<>(Class.class);
 
-	public static final BetterReflectionClass UNSAFE_CLASS = new BetterReflectionClass(Unsafe.class);
+	public static final BetterReflectionClass<Unsafe> UNSAFE_CLASS = new BetterReflectionClass<>(Unsafe.class);
 
 }

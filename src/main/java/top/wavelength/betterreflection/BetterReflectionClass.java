@@ -7,48 +7,55 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.JarFile;
 
-public class BetterReflectionClass {
+public class BetterReflectionClass<T> {
 
 	/**
 	 * @since 0.6
 	 */
-	private final String name;
+	protected final String name;
 	/**
 	 * @since 0.6
 	 */
-	private final String simpleName;
+	protected final String simpleName;
 	/**
 	 * @since 0.6
 	 */
-	private final String canonicalName;
+	protected final String canonicalName;
 	/**
 	 * @since 0.6
 	 */
-	private final String typeName;
-	private final String packageName;
+	protected final String typeName;
+	protected final String packageName;
 
-	private Class<?> clasz;
+	protected final Class<T> clasz;
 
-	private final Field[] declaredFields;
-	private final Field[] fields;
-	private final Constructor<?>[] declaredConstructors;
-	private final Constructor<?>[] constructors;
-	private final Method[] declaredMethods;
-	private final Method[] methods;
+	protected final Field[] declaredFields;
+	protected final Field[] fields;
+	protected final Constructor<?>[] declaredConstructors;
+	protected final Constructor<?>[] constructors;
+	protected final Method[] declaredMethods;
+	protected final Method[] methods;
 
 	/**
 	 * @since 0.7
 	 */
-	private final ProtectionDomain protectionDomain;
+	protected final ProtectionDomain protectionDomain;
 
 	/**
 	 * @since 0.6
 	 */
-	private final Class<?> superClass;
+	protected final Class<?> superClass;
 	/**
 	 * @since 0.7
 	 */
-	private BetterReflectionClass betterReflectionSuperClass;
+	protected BetterReflectionClass<?> betterReflectionSuperClass;
+
+	/**
+	 * This variable represents whether the class is an enumeration.
+	 *
+	 * @since 1.1
+	 */
+	protected final boolean isEnum;
 
 	/**
 	 * Null until {@link #isRunningFromJar()} is invoked, then a mirror of
@@ -56,35 +63,36 @@ public class BetterReflectionClass {
 	 *
 	 * @since 0.7
 	 */
-	private Boolean runningFromJar;
+	protected Boolean runningFromJar;
 	/**
 	 * Null until {@link #getJar()} is invoked, then a mirror of
 	 * {@link BetterReflectionUtils#getCurrentJar(BetterReflectionClass)}
 	 *
 	 * @since 0.7
 	 */
-	private JarFile jar;
+	protected JarFile jar;
 	/**
 	 * Null until {@link #getJarFile()} is invoked, then a mirror of
 	 * {@link BetterReflectionUtils#getCurrentJarFile(BetterReflectionClass)}
 	 *
 	 * @since 0.7
 	 */
-	private File jarFile;
+	protected File jarFile;
 
+	@SuppressWarnings("unchecked")
 	public BetterReflectionClass(String className) throws ClassNotFoundException {
-		this(Class.forName(className));
+		this((Class<T>) Class.forName(className));
 	}
 
 	/**
 	 * @param clasz the class to wrap
 	 * @since 0.7
 	 */
-	public BetterReflectionClass(BetterReflectionClass clasz) {
+	public BetterReflectionClass(BetterReflectionClass<T> clasz) {
 		this(clasz.getClasz());
 	}
 
-	public BetterReflectionClass(Class<?> clasz) {
+	public BetterReflectionClass(Class<T> clasz) {
 		this.clasz = clasz;
 
 		this.name = clasz.getName();
@@ -102,6 +110,7 @@ public class BetterReflectionClass {
 		this.superClass = clasz.getSuperclass();
 
 		this.protectionDomain = clasz.getProtectionDomain();
+		this.isEnum = clasz.isEnum();
 	}
 
 	/**
@@ -110,9 +119,13 @@ public class BetterReflectionClass {
 	 * ClassNotFoundException is thrown it will return null
 	 * @since 0.4
 	 */
-	public static BetterReflectionClass forName(String name) {
+	@SuppressWarnings("unchecked")
+	public static BetterReflectionClass<?> forName(String name) {
 		try {
-			return new BetterReflectionClass(name);
+			BetterReflectionClass<?> betterReflectionClass = new BetterReflectionClass<>(name);
+			if (betterReflectionClass.isEnum())
+				return new EnumBetterReflectionClass<>((BetterReflectionClass<? extends Enum<?>>) betterReflectionClass);
+			return betterReflectionClass;
 		} catch (Exception e) {
 			return null;
 		}
@@ -124,14 +137,14 @@ public class BetterReflectionClass {
 	 * is not found.
 	 * @since 0.7
 	 */
-	public static BetterReflectionClass forNameAsArray(String name) {
-		BetterReflectionClass clasz = forName(name);
+	public static BetterReflectionClass<?> forNameAsArray(String name) {
+		BetterReflectionClass<?> clasz = forName(name);
 		if (clasz == null)
 			return null;
 		return clasz.getBetterReflectionArrayClass();
 	}
 
-	public Class<?> getClasz() {
+	public Class<T> getClasz() {
 		return clasz;
 	}
 
@@ -257,7 +270,7 @@ public class BetterReflectionClass {
 		return protectionDomain;
 	}
 
-	public Object newInstance() throws InstantiationException, IllegalAccessException {
+	public T newInstance() throws InstantiationException, IllegalAccessException {
 		return clasz.newInstance();
 	}
 
@@ -268,7 +281,7 @@ public class BetterReflectionClass {
 	public void invokeMethods(Map<String, Object[]> methods, Object instance) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		for (String methodName : methods.keySet()) {
 			Object[] parameters = methods.get(methodName);
-			Map<Integer, Class<?>> primitives = new HashMap<Integer, Class<?>>();
+			Map<Integer, Class<?>> primitives = new HashMap<>();
 			for (int i = 0; i < parameters.length; i++) {
 				Object parameter = parameters[i];
 				if (!(parameter instanceof ReflectionParameter))
@@ -292,12 +305,13 @@ public class BetterReflectionClass {
 		return this.clasz.asSubclass(clasz);
 	}
 
-	public Class<?> getArrayClass() {
-		return Array.newInstance(clasz, 0).getClass();
+	@SuppressWarnings("unchecked")
+	public Class<T[]> getArrayClass() {
+		return (Class<T[]>) Array.newInstance(clasz, 0).getClass();
 	}
 
-	public BetterReflectionClass getBetterReflectionArrayClass() {
-		return new BetterReflectionClass(Array.newInstance(clasz, 0).getClass());
+	public BetterReflectionClass<T[]> getBetterReflectionArrayClass() {
+		return new BetterReflectionClass<>(getArrayClass());
 	}
 
 	/**
@@ -311,9 +325,8 @@ public class BetterReflectionClass {
 
 	public Object getArray(Object... content) {
 		Object array = Array.newInstance(clasz, content.length);
-		for (int i = 0; i < content.length; i++) {
+		for (int i = 0; i < content.length; i++)
 			Array.set(array, i, content[i]);
-		}
 
 		return array;
 	}
@@ -353,9 +366,9 @@ public class BetterReflectionClass {
 	 * @return {@link #getSuperclass()} as {@link BetterReflectionClass}
 	 * @since 0.7
 	 */
-	public BetterReflectionClass getBetterReflectionSuperClass() {
+	public BetterReflectionClass<?> getBetterReflectionSuperClass() {
 		if (betterReflectionSuperClass == null)
-			betterReflectionSuperClass = new BetterReflectionClass(superClass);
+			betterReflectionSuperClass = new BetterReflectionClass<>(superClass);
 		return betterReflectionSuperClass;
 	}
 
@@ -441,13 +454,23 @@ public class BetterReflectionClass {
 	}
 
 	/**
-	 * Uses Unsafe to allocate an instance of this class without invoking its constructor.
+	 * Allocates an unsafe instance of the class.
 	 *
-	 * @return a new instance of the current class
-	 * @since 1.0
+	 * @return an instance of the class
+	 * @throws IllegalAccessException if the class is not accessible
+	 * @throws InstantiationException if the class is abstract, an interface, an array class, a primitive type, or void;
 	 */
-	public Object allocateUnsafeInstance() throws IllegalAccessException, InstantiationException {
-		return BetterReflectionUtils.allocateUnsafeInstance(clasz);
+	@SuppressWarnings("unchecked")
+	public T allocateUnsafeInstance() throws IllegalAccessException, InstantiationException {
+		return (T) BetterReflectionUtils.allocateUnsafeInstance(clasz);
+	}
+
+	public boolean isEnum() {
+		return clasz.isEnum();
+	}
+
+	public boolean isEnumWrapped() {
+		return this instanceof EnumBetterReflectionClass;
 	}
 
 }

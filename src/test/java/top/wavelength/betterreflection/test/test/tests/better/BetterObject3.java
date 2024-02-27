@@ -6,7 +6,7 @@ import top.wavelength.betterreflection.test.test.TestClass;
 
 public class BetterObject3 extends Test {
 
-	public BetterObject3(int id, TestClass testedObject, BetterReflectionClass betterTestedClass) {
+	public BetterObject3(int id, TestClass testedObject, BetterReflectionClass<TestClass> betterTestedClass) {
 		super(id, "This test gets the private field of the test object through better reflections.", testedObject, betterTestedClass);
 	}
 

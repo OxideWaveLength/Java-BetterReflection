@@ -1,10 +1,10 @@
 <project name="Java-BetterReflection" basedir="./Java-BetterReflection" default="main">
-    <property name="dir.src"     value="src"/>
-    <property name="dir.build"   value="build"/>
+    <property name="dir.src" value="src"/>
+    <property name="dir.build" value="build"/>
     <property name="dir.classes" value="${dir.build}/classes"/>
-    <property name="dir.jar"     value="${dir.build}/jar"/>
+    <property name="dir.jar" value="${dir.build}/jar"/>
 
-    <property name="main-class"  value="me.wavelength.BetterReflection"/>
+    <property name="main-class" value="me.wavelength.BetterReflection"/>
 
     <target name="clean">
         <delete dir="${dir.build}"/>
