@@ -1,5 +1,8 @@
 package top.wavelength.betterreflection;
 
+import top.wavelength.betterreflection.dumper.TypeDisplayNameFormat;
+import top.wavelength.betterreflection.dumper.implementation.MethodDumper;
+
 import java.io.File;
 import java.lang.reflect.*;
 import java.security.ProtectionDomain;
@@ -406,7 +409,7 @@ public class BetterReflectionClass<T> {
 		return this.clasz.isAssignableFrom(clasz);
 	}
 
-	public boolean isAssignableFrom(BetterReflectionClass clasz) {
+	public boolean isAssignableFrom(BetterReflectionClass<?> clasz) {
 		return isAssignableFrom(clasz.getClasz());
 	}
 
@@ -450,7 +453,7 @@ public class BetterReflectionClass<T> {
 	 */
 	public void dumpMethodHeaders(boolean includeModifiers, boolean includeReturnType, boolean includeParameterNames) {
 		for (Method method : getDeclaredMethods())
-			BetterReflectionUtils.dumpMethodHeader(method, includeModifiers, includeReturnType, includeParameterNames);
+			new MethodDumper().setIncludeModifiers(includeModifiers).setReturnTypeDisplay(includeReturnType ? TypeDisplayNameFormat.FULL_NAME : TypeDisplayNameFormat.NONE).setReturnTypeDisplay(includeParameterNames ? TypeDisplayNameFormat.FULL_NAME : TypeDisplayNameFormat.NONE).dump(method);
 	}
 
 	/**

@@ -355,7 +355,9 @@ public class BetterReflectionUtils {
 	 * @return the method's header (modifiers name(parameters), e.g. public String
 	 * generateMethodHeader(Method method)
 	 * @since 0.7
+	 * @deprecated see {@link top.wavelength.betterreflection.dumper.implementation.MethodDumper}
 	 */
+	@Deprecated
 	public static String generateMethodHeader(Method method, boolean includeModifiers, boolean includeReturnType, boolean includeParameterNames) {
 		StringBuilder parameters = new StringBuilder();
 		for (Parameter parameter : method.getParameters()) {
@@ -374,7 +376,9 @@ public class BetterReflectionUtils {
 	 * @param includeReturnType     whether the method's return type should be dumped
 	 * @param includeParameterNames whether the method's parameter names should be dumped
 	 * @since 0.7 Writes {@link #generateMethodHeader(Method, boolean, boolean, boolean)}} to stout
+	 * @deprecated see {@link top.wavelength.betterreflection.dumper.implementation.MethodDumper}
 	 */
+	@Deprecated
 	public static void dumpMethodHeader(Method method, boolean includeModifiers, boolean includeReturnType, boolean includeParameterNames) {
 		System.out.println(generateMethodHeader(method, includeModifiers, includeReturnType, includeParameterNames));
 	}
