@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ClassFinderTest {
 
 	@Test
-	public void testNonRecursive() throws IOException, URISyntaxException {
+	public void testNonRecursive() throws IOException, URISyntaxException, ClassNotFoundException {
 		BetterReflectionClass<ClassFinderTest> thisClass = new BetterReflectionClass<>(ClassFinderTest.class);
 
 		// Create a ClassFinder instance
@@ -38,7 +38,7 @@ public class ClassFinderTest {
 	}
 
 	@Test
-	public void testRecursive() throws IOException, URISyntaxException {
+	public void testRecursive() throws IOException, URISyntaxException, ClassNotFoundException {
 		BetterReflectionClass<ClassFinderTest> thisClass = new BetterReflectionClass<>(ClassFinderTest.class);
 
 		// Create a ClassFinder instance
@@ -58,7 +58,7 @@ public class ClassFinderTest {
 	}
 
 	@Test
-	public void testWithType() throws IOException, URISyntaxException {
+	public void testWithType() throws IOException, URISyntaxException, ClassNotFoundException {
 		// Create a mock for BetterReflectionClass
 		BetterReflectionClass<TestLookupClass> testLookupClass = new BetterReflectionClass<>(TestLookupClass.class);
 		BetterReflectionClass<ClassFinderTest> thisClass = new BetterReflectionClass<>(ClassFinderTest.class);
@@ -84,7 +84,7 @@ public class ClassFinderTest {
 	}
 
 	@Test
-	public void testWithTypeRecursive() throws IOException, URISyntaxException {
+	public void testWithTypeRecursive() throws IOException, URISyntaxException, ClassNotFoundException {
 		// Create a mock for BetterReflectionClass
 		BetterReflectionClass<TestLookupClass> testLookupClass = new BetterReflectionClass<>(TestLookupClass.class);
 		BetterReflectionClass<ClassFinderTest> thisClass = new BetterReflectionClass<>(ClassFinderTest.class);

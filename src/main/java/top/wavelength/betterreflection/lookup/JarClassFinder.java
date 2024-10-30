@@ -3,12 +3,14 @@ package top.wavelength.betterreflection.lookup;
 import top.wavelength.betterreflection.BetterReflectionClass;
 import top.wavelength.betterreflection.exceptions.CannotReadJarException;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import static top.wavelength.betterreflection.BetterReflectionUtils.LAUNCH_JAR_FILE;
 
 /**
  * JarClassFinder is a concrete implementation of the ClassFinder abstract class that is used to
@@ -40,14 +42,13 @@ public class JarClassFinder<T> extends ClassFinder<T> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<BetterReflectionClass<T>> findClasses() throws IOException {
-		if (basePackage == null || basePackage.trim().isEmpty())
-			return Collections.emptyList();
 		List<BetterReflectionClass<T>> classes = new ArrayList<>();
-		String basePackage = this.basePackage.replace('.', '/');
-		if (LAUNCH_JAR_FILE == null || !LAUNCH_JAR_FILE.exists() || !LAUNCH_JAR_FILE.canRead())
-			throw new CannotReadJarException(LAUNCH_JAR_FILE == null ? "[NO NAME]" : LAUNCH_JAR_FILE.getName());
+		String basePackage = this.basePackage == null ? "" : this.basePackage.replace('.', '/');
+		File jarFile = getJarFile();
+		if (jarFile == null || !jarFile.exists() || !jarFile.canRead())
+			throw new CannotReadJarException(jarFile == null ? "[NO NAME]" : jarFile.getName());
 
-		try (JarFile jar = new JarFile(LAUNCH_JAR_FILE)) {
+		try (JarFile jar = new JarFile(jarFile)) {
 			Enumeration<JarEntry> entries = jar.entries();
 			while (entries.hasMoreElements()) {
 				JarEntry entry = entries.nextElement();
@@ -60,14 +61,19 @@ public class JarClassFinder<T> extends ClassFinder<T> {
 				String packageName = entry.getName().substring(0, name.lastIndexOf('/')).replace('/', '.');
 				String className = entry.getName().substring(packageName.length() + 1, entry.getName().lastIndexOf('.'));
 				String fullName = packageName + '.' + className;
-				BetterReflectionClass<?> clasz = BetterReflectionClass.forName(fullName);
-				if (getType() == null || getType().isAssignableFrom(Objects.requireNonNull(clasz)))
-					classes.add((BetterReflectionClass<T>) clasz);
 
-				if (isRecursive()) {
-					if (packageName.startsWith(basePackage))
-						classes.add((BetterReflectionClass<T>) clasz);
-				} else if (packageName.equals(basePackage))
+				if ((isRecursive() && !packageName.startsWith(basePackage))
+						|| (!isRecursive() && !packageName.equalsIgnoreCase(basePackage)))
+					continue;
+
+				BetterReflectionClass<?> clasz;
+				try {
+					clasz = new BetterReflectionClass<>(Class.forName(fullName, true, getClassLoader()));
+				} catch (ClassNotFoundException | NoClassDefFoundError e) {
+					continue;
+				}
+
+				if (getType() == null || getType().isAssignableFrom(Objects.requireNonNull(clasz)))
 					classes.add((BetterReflectionClass<T>) clasz);
 			}
 		}

@@ -140,12 +140,23 @@ public class BetterReflection {
 			latestVersionFuture.run();
 			int[] latestVersion = versionToInts(latestVersionFuture.get());
 			int minLength = Math.min(version.length, latestVersion.length);
-			for (int i = 0; i < Math.max(version.length, latestVersion.length); i++)
-				if (minLength > i && version[i] > latestVersion[i])
-					return true;
-			return false;
-		});
 
+			// Compare each segment up to the common length
+			for (int i = 0; i < minLength; i++)
+				if (version[i] > latestVersion[i])
+					return true; // Current version is newer
+				else if (version[i] < latestVersion[i])
+					return false; // Current version is older
+
+			// If versions are equal up to the common length, check if current version has extra segments
+			if (version.length > latestVersion.length)
+				for (int i = latestVersion.length; i < version.length; i++)
+					if (version[i] > 0)
+						return true; // Current version is newer due to additional non-zero segments
+
+			// If we reach here, the versions are either equal or the current version has extra zeros
+			return true; // Current version is up to date or equal
+		});
 	}
 
 	/**
@@ -155,7 +166,7 @@ public class BetterReflection {
 	 * @since 0.4
 	 */
 	public static String getVersion() {
-		return "1.2";
+		return "1.3";
 	}
 
 	/**

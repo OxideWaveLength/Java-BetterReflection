@@ -56,17 +56,29 @@ public class IdeClassFinder<T> extends ClassFinder<T> {
 	@SuppressWarnings("unchecked")
 	public List<BetterReflectionClass<T>> scanDirectory(List<File> directories, String packageName) {
 		List<BetterReflectionClass<T>> classes = new ArrayList<>();
+
+		String base = packageName == null || packageName.trim().isEmpty() ? "" : packageName + '.';
+
 		for (File directory : directories) {
 			File[] files = directory.listFiles();
 			assert files != null;
-			for (File file : files)
+			for (File file : files) {
 				if (file.isDirectory() && isRecursive())
-					classes.addAll(scanDirectory(Collections.singletonList(file), packageName + "." + file.getName()));
+					classes.addAll(scanDirectory(Collections.singletonList(file), base + file.getName()));
 				else if (file.getName().endsWith(".class")) {
-					BetterReflectionClass<?> clasz = BetterReflectionClass.forName(packageName + '.' + file.getName().substring(0, file.getName().lastIndexOf('.')));
+					String className = base + file.getName().substring(0, file.getName().lastIndexOf('.'));
+
+					BetterReflectionClass<?> clasz;
+					try {
+						clasz = new BetterReflectionClass<>(Class.forName(className, true, getClassLoader()));
+					} catch (ClassNotFoundException | NoClassDefFoundError e) {
+						continue;
+					}
+
 					if (getType() == null || getType().isAssignableFrom(Objects.requireNonNull(clasz)))
 						classes.add((BetterReflectionClass<T>) clasz);
 				}
+			}
 		}
 		return classes;
 	}

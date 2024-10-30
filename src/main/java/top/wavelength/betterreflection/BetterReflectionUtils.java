@@ -246,7 +246,7 @@ public class BetterReflectionUtils {
 	 * @deprecated This method is deprecated in favour of ClassFinder
 	 */
 	@Deprecated
-	public static List<BetterReflectionClass<Object>> getClassesInPackage(String packageName) throws IOException, URISyntaxException, CannotReadJarException {
+	public static List<BetterReflectionClass<Object>> getClassesInPackage(String packageName) throws IOException, URISyntaxException, CannotReadJarException, ClassNotFoundException {
 		return ClassFinderFactory.create(packageName, CLASS).findClasses();
 	}
 
@@ -267,7 +267,7 @@ public class BetterReflectionUtils {
 	 *                                Jar and the Jar file cannot be found or it
 	 *                                cannot be read.
 	 */
-	public static List<BetterReflectionClass<?>> getClassesFromNameBeginning(String packageName, String beginning) throws IOException, URISyntaxException, CannotReadJarException {
+	public static List<BetterReflectionClass<?>> getClassesFromNameBeginning(String packageName, String beginning) throws IOException, URISyntaxException, CannotReadJarException, ClassNotFoundException {
 		List<BetterReflectionClass<?>> classes = new ArrayList<>();
 		for (BetterReflectionClass<?> clasz : getClassesInPackage(packageName))
 			if (clasz.getSimpleName().startsWith(beginning))
