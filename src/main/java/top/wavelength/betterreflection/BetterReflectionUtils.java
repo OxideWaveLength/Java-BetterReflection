@@ -26,7 +26,7 @@ public class BetterReflectionUtils {
 	 * @since 0.7
 	 */
 	public static File getCurrentJarFile(BetterReflectionClass<?> clasz) {
-		if (!isRunningFromJar())
+		if (!isRunningFromJar(clasz))
 			return null;
 		try {
 			return new File(clasz.getProtectionDomain().getCodeSource().getLocation().toURI());
