@@ -219,13 +219,27 @@ public class BetterReflectionUtils {
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		assert classLoader != null;
 
-		String path = packageName.replace('.', '/');
+		String path = packageName.replace('.', File.separatorChar);
 
-		Enumeration<URL> resources = classLoader.getResources(path);
 		List<File> directories = new ArrayList<>();
+		Enumeration<URL> resources = classLoader.getResources(path);
 		while (resources.hasMoreElements()) {
 			URL resource = resources.nextElement();
-			directories.add(new File(resource.toURI()));
+			if ("file".equals(resource.getProtocol())) {
+				// Handle filesystem directories
+				try {
+					File dir = new File(resource.toURI());
+					if (dir.isDirectory()) {
+						directories.add(dir);
+					}
+				} catch (Exception e) {
+					throw new IOException("Failed to process filesystem resource: " + resource, e);
+				}
+			} else if ("jar".equals(resource.getProtocol())) {
+				// Handle JAR entries (optional: add JAR file to list)
+				String jarPath = resource.getPath().split("!")[0].replace("file:", "");
+				directories.add(new File(jarPath)); // Add JAR file itself
+			}
 		}
 
 		return directories;
@@ -246,7 +260,7 @@ public class BetterReflectionUtils {
 	 * @deprecated This method is deprecated in favour of ClassFinder
 	 */
 	@Deprecated
-	public static List<BetterReflectionClass<Object>> getClassesInPackage(String packageName) throws IOException, URISyntaxException, CannotReadJarException, ClassNotFoundException {
+	public static List<BetterReflectionClass<Object>> getClassesInPackage(String packageName) throws IOException, URISyntaxException, CannotReadJarException {
 		return ClassFinderFactory.create(packageName, CLASS).findClasses();
 	}
 
@@ -267,7 +281,7 @@ public class BetterReflectionUtils {
 	 *                                Jar and the Jar file cannot be found or it
 	 *                                cannot be read.
 	 */
-	public static List<BetterReflectionClass<?>> getClassesFromNameBeginning(String packageName, String beginning) throws IOException, URISyntaxException, CannotReadJarException, ClassNotFoundException {
+	public static List<BetterReflectionClass<?>> getClassesFromNameBeginning(String packageName, String beginning) throws IOException, URISyntaxException, CannotReadJarException {
 		List<BetterReflectionClass<?>> classes = new ArrayList<>();
 		for (BetterReflectionClass<?> clasz : getClassesInPackage(packageName))
 			if (clasz.getSimpleName().startsWith(beginning))
@@ -345,6 +359,33 @@ public class BetterReflectionUtils {
 			}
 			throw exception;
 		}
+	}
+
+	/**
+	 * Dynamically discerns the separator used in a given path.
+	 *
+	 * @param path The path to analyze.
+	 * @return The detected separator as a String (either "/" or "\").
+	 * @throws IllegalArgumentException if the path is null, empty, or contains no valid separators.
+	 * @since 1.3.2
+	 */
+	public static String discernSeparator(String path) {
+		if (path == null || path.isEmpty())
+			throw new IllegalArgumentException("Path cannot be null or empty.");
+
+		// Count occurrences of '/' and '\'
+		long forwardSlashCount = path.chars().filter(ch -> ch == '/').count();
+		long backslashCount = path.chars().filter(ch -> ch == '\\').count();
+
+		// Determine the separator based on the counts
+		if (forwardSlashCount > 0 && backslashCount == 0)
+			return "/";
+		else if (backslashCount > 0 && forwardSlashCount == 0)
+			return "\\";
+		else if (forwardSlashCount > 0)
+			return "/";
+		else
+			throw new IllegalArgumentException("Path contains no valid separators.");
 	}
 
 	/**

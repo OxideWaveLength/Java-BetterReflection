@@ -37,6 +37,8 @@ public class BetterReflection {
 		PRIMITIVES.put(Boolean.class, new BetterReflectionClass<>(Boolean.class));
 		PRIMITIVES.put(Long.class, new BetterReflectionClass<>(Long.class));
 		PRIMITIVES.put(Void.class, new BetterReflectionClass<>(Void.class));
+		PRIMITIVES.put(Character.class, new BetterReflectionClass<>(Character.class));
+		PRIMITIVES.put(String.class, new BetterReflectionClass<>(String.class));
 
 		PRIMITIVES.put(short.class, new BetterReflectionClass<>(short.class));
 		PRIMITIVES.put(byte.class, new BetterReflectionClass<>(byte.class));
@@ -46,6 +48,7 @@ public class BetterReflection {
 		PRIMITIVES.put(boolean.class, new BetterReflectionClass<>(boolean.class));
 		PRIMITIVES.put(long.class, new BetterReflectionClass<>(long.class));
 		PRIMITIVES.put(void.class, new BetterReflectionClass<>(void.class));
+		PRIMITIVES.put(char.class, new BetterReflectionClass<>(char.class));
 	}
 
 	/**
@@ -93,6 +96,20 @@ public class BetterReflection {
 
 	public static Map<Class<?>, BetterReflectionClass<?>> getPrimitives() {
 		return PRIMITIVES;
+	}
+
+	/**
+	 * @param name The primitive name
+	 * @return a BetterReflectionClass matching the given primitive name
+	 * @since 1.3.2
+	 */
+	public static BetterReflectionClass<?> getPrimitive(String name) {
+		for (Class<?> clasz : PRIMITIVES.keySet()) {
+			BetterReflectionClass<?> betterReflectionClass = PRIMITIVES.get(clasz);
+			if (betterReflectionClass.getSimpleName().equals(name))
+				return betterReflectionClass;
+		}
+		return null;
 	}
 
 	public static Object getFieldValue(BetterReflectionClass<?> betterReflectionClass, Object instance, String fieldName) throws IllegalAccessException {
@@ -166,7 +183,7 @@ public class BetterReflection {
 	 * @since 0.4
 	 */
 	public static String getVersion() {
-		return "1.3.1";
+		return "1.3.2";
 	}
 
 	/**

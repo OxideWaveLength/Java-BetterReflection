@@ -61,7 +61,8 @@ public class IdeClassFinder<T> extends ClassFinder<T> {
 
 		for (File directory : directories) {
 			File[] files = directory.listFiles();
-			assert files != null;
+			if (files == null)
+				continue;
 			for (File file : files) {
 				if (file.isDirectory() && isRecursive())
 					classes.addAll(scanDirectory(Collections.singletonList(file), base + file.getName()));
